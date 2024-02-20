@@ -193,7 +193,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2024-02-20 19:05:53 / 修改时间：19:20:20" itemprop="dateCreated datePublished" datetime="2024-02-20T19:05:53+08:00">2024-02-20</time>
+      <time title="创建时间：2024-02-20 19:05:53 / 修改时间：20:08:52" itemprop="dateCreated datePublished" datetime="2024-02-20T19:05:53+08:00">2024-02-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -215,14 +215,27 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="PKU-VCL-Final-Project"><a href="#PKU-VCL-Final-Project" class="headerlink" title="PKU-VCL Final Project"></a>PKU-VCL Final Project</h1><h2 id="0-Preface"><a href="#0-Preface" class="headerlink" title="0.Preface"></a>0.Preface</h2><p>这是 PKU 可视计算与交互的期末项目，具体实现了一个快速的弹簧系统的仿真，你可以在<a target="_blank" rel="noopener" href="https://github.com/skytang2022/PKU-VCL-2023-Final-Project-Fast-Simulation-of-Mass-Spring-Systems">这里</a>找到源代码。</p>
-<h2 id="1-Introdution"><a href="#1-Introdution" class="headerlink" title="1.Introdution"></a>1.Introdution</h2><h3 id="Fast-Simulation-of-Mass-Spring-Systems"><a href="#Fast-Simulation-of-Mass-Spring-Systems" class="headerlink" title="Fast Simulation of Mass-Spring Systems"></a>Fast Simulation of Mass-Spring Systems</h3><p><img src="/./images_project-PKU-VCL-2023-Final-Project/project-D-3.png" alt="project-D-3"><br>Lab 4 中我们实现了隐式弹簧质点的求解，其中每一帧都求解一个线性系统的开销是非常大的。在 SIGGRAPH 2013 上，作者提供了一种简单并有效的加速弹簧质点解算的<a target="_blank" rel="noopener" href="https://tiantianliu.cn/papers/liu13fast/liu13fast.html">方法</a>：通过 local-global 的交替迭代并预分解矩阵，能够大大加速弹簧质点系统的解算。 </p>
-<h2 id="2-Method"><a href="#2-Method" class="headerlink" title="2.Method"></a>2.Method</h2><p>我们假设一个质点-弹簧系统在 3D 中具有 $m$ 个点，在具有恒定的时间步长 $h$ 的时间样本 $t_{1},t_{2},…$下演化。在 $t_{n}$ 时刻的质点坐标为 $\textbf{q}<em>{n}\in \mathbb{R}^{3m}$，速度为 $\textbf{v}</em>{n}\in \mathbb{R}^{3m}$。受力用一个非线性方程 $\textbf{f}:\mathbb{R}^{3m}\to\mathbb{R}^{3m}$表示，因此 $\textbf{f}(\textbf{q}<em>{n})$ 是在时间 $t</em>{n}$ 时作用在所有粒子上的力的向量。我们假设力是保守的，即 $\textbf{f}&#x3D;-\nabla E$，其中 $E:\mathbb{R}^{3m}\to\mathbb{R}^{m}$ 是一个势函数。给定对角质量矩阵 $\textbf{M}\in \mathbb{R}^{3m\times3m}$，根据牛顿定律隐式欧拉规则会产生以下更新规则：<br>$$\begin{align} \textbf{q}<em>{n+1}&#x3D;\textbf{q}</em>{n}+h\textbf{v}<em>{n+1}\ \textbf{v}</em>{n+1}&#x3D;\textbf{v}<em>{n}+h\textbf{M}^{-1}\textbf{f}(\textbf{q}</em>{n+1})\end{align}<br>$$ 将（1）代入（2）后可得：<br>$$\begin{align} \textbf{q}<em>{n+1}-\textbf{q}</em>{n}-h\textbf{v}<em>{n}&#x3D;h^2\textbf{M}^{-1}\textbf{f}(\textbf{q}</em>{n+1}) \end{align}<br>$$ 将 $\textbf{f}$ 拆分为与位置相关量和与位置无关量 $\textbf{f}(\textbf{q}<em>{n})&#x3D;\textbf{f}</em>{int}(\textbf{q}<em>{n})+\textbf{f}</em>{ext}$ 设 $\textbf{y}:&#x3D;\textbf{q}<em>{n}+h\textbf{v}</em>{n}+h^2\textbf{M}^{-1}\textbf{f}<em>{ext}$ ，$\textbf{x}:&#x3D;\textbf{q}</em>{n+1}$ 。其中$\textbf{y}$ 为已知量，$\textbf{x}$ 为要求的量，方程可写作：<br>$$\begin{align} \textbf{M}(\textbf{x}-\textbf{y})&#x3D;h^2\textbf{f}(\textbf{x}) \end{align}<br>$$方程（4）的解对应以下函数的临界点：<br>$$\begin{align} g(\textbf{x})&#x3D;\frac{1}{2}(\textbf{x}-\textbf{y})^T\textbf{M}(\textbf{x}-\textbf{y})+h^2E(\textbf{x}) \end{align}<br>$$ 因而原问题转化为最小化问题： $\min_{\textbf{x}}g(\textbf{x})$</p>
-<p>文章中技术的主要思想是以一种允许我们采用块坐标下降法（block coordinate descent method）重新表述能量势 $E$。而 $E$ 的关键组成部分是弹簧势。<br>根据胡克定律，弹簧势定义为：<br>$$\begin{align} \frac{1}{2}k(\left|  \textbf{p}_1-\textbf{p}_2 \right|-r)^2 \end{align}<br>$$其中 $\textbf{p}_1,\textbf{p}_2\in\mathbb{R}^3$ 为弹簧端点位置，$r\ge0$ 为原长，$k\ge0$ 为劲度系数。重新表述的关键在于将胡克定律重新表述为最小化问题（证明省略）：<br>$$\begin{align} (\left|  \textbf{p}_1-\textbf{p}_2 \right|-r)^2&#x3D;\underset{\left| \textbf{d} \right|&#x3D;r}{\min}\left|  \textbf{p}<em>1-\textbf{p}<em>2-\textbf{d} \right|^2 \end{align}<br>$$所以弹簧势可以表述为：<br>$$\begin{align} E(\textbf{x})&#x3D;\frac{1}{2}\sum</em>{i&#x3D;1}^{s}k_i \underset{\left| \textbf{d}<em>i  \right|&#x3D;r}{\min}\left|  \textbf{p}</em>{i_1}-\textbf{p}</em>{i_2}-\textbf{d}_i \right|^2 &#x3D;\underset{\left| \textbf{d}<em>i  \right|&#x3D;r}{\min}\frac{1}{2}\textbf{x}^T\textbf{L}\textbf{x}-\textbf{x}^T\textbf{J}\textbf{d} \end{align}<br>$$其中 $s$ 为弹簧数量，矩阵 $\textbf{L}\in \mathbb{R}^{3m\times3m},\textbf{J}\in \mathbb{R}^{3m\times3s}$ 定义如下：<br>$$\begin{align}\textbf{L}&#x3D;\left(\sum</em>{i&#x3D;1}^{s}k_i\textbf{A}_i\textbf{A}_i^T\right)\otimes \textbf{I}<em>3, \textbf{J}&#x3D;\left(\sum</em>{i&#x3D;1}^{s}k_i\textbf{A}<em>i\textbf{S}<em>i^T\right)\otimes \textbf{I}<em>3 \end{align}<br>$$其中 $\textbf{A}<em>i \in \textbf{R}^m$ 是第i个弹簧的入射向量，$\textbf{A}</em>{i,i_1}&#x3D;1,\textbf{A}</em>{i,i_2}&#x3D;-1 $，其他为0。$\textbf{S}<em>i \in \textbf{R}^s$ 为第i个弹簧的指示向量， $\textbf{s}</em>{i,i}&#x3D;1$，其他为0。将他们带入我们需要求解的最小化问题中可以得到：<br>$$\begin{align} \underset{ \textbf{x}\in\textbf{R}^{3m}, \left|\textbf{d}<em>i  \right|&#x3D;r}{\min}\frac{1}{2}\textbf{x}^T\textbf{L}\textbf{x}-\textbf{x}^T\textbf{J}\textbf{d}+\textbf{x}^T\textbf{y} \end{align}<br>$$最小化问题（10）可以用块下降方法求解。先固定 $\textbf{x}$ ，求得最优的 $\textbf{d}$ ，再固定 $\textbf{d}$ ，求得最优的 $\textbf{x}$ ，如此反复直到到达最大迭代次数。值得注意的是，在每一步迭代 $\textbf{x}$ 时可以使用牛顿法下降，而迭代 $\textbf{d}$ 时因为（7），可以直接将 $\textbf{d}<em>i&#x3D;r(\textbf{p}</em>{i_1}-\textbf{p}</em>{i_2})&#x2F;\left| \textbf{p}</em>{i_1}-\textbf{p}</em>{i_2} \right|$代入，加速计算。</p>
-<h2 id="3-Implementation"><a href="#3-Implementation" class="headerlink" title="3.Implementation"></a>3.Implementation</h2><p>这部分没什么意思我们跳过。</p>
-<h2 id="4-Result"><a href="#4-Result" class="headerlink" title="4.Result"></a>4.Result</h2><p>重新调整了界面使得三种算法，显式欧拉，隐式欧拉和快速隐式欧拉，可以方便比较。并且加入了新的变量steps，代表每一小步的迭代次数。用fps大小来评定算法的效率。</p>
-<p>显式欧拉法效率最高，在steps&#x3D;1000时，fps依旧保持在最大的60。<br><img src="/./images_project-PKU-VCL-2023-Final-Project/explicit.png" alt="explicit"><br>隐式欧拉法效率很低，在steps&#x3D;39时，fps就只有20了，当steps达到150时实时仿真就崩溃了。<br><img src="/./images_project-PKU-VCL-2023-Final-Project/implicit_1.png" alt="implicit"><br><img src="/./images_project-PKU-VCL-2023-Final-Project/implicit_2.png" alt="implicit"><br>我们实现的快速隐式欧拉法相较于传统的隐式欧拉法，效率会快上数倍，steps在150时，fps有39，当steps达到500时，fps还能保持在15，steps达到最大的1000时仿真依旧没有崩溃。<br><img src="/./images_project-PKU-VCL-2023-Final-Project/fast_implicit_1.png" alt="fast_implicit"><br><img src="/./images_project-PKU-VCL-2023-Final-Project/fast_implicit_2.png" alt="fast_implicit"><br><img src="/./images_project-PKU-VCL-2023-Final-Project/fast_implicit_3.png" alt="fast_implicit"></p>
+          <h1 id="pku-vcl-final-project">PKU-VCL Final Project</h1>
+<h2 id="preface">0.Preface</h2>
+<p>这是 PKU
+可视计算与交互的期末项目，具体实现了一个快速的弹簧系统的仿真，你可以在<a target="_blank" rel="noopener" href="https://github.com/skytang2022/PKU-VCL-2023-Final-Project-Fast-Simulation-of-Mass-Spring-Systems">这里</a>找到源代码。</p>
+<h2 id="introdution">1.Introdution</h2>
+<h3 id="fast-simulation-of-mass-spring-systems">Fast Simulation of
+Mass-Spring Systems</h3>
 
+<p><img src="/%E9%A1%B9%E7%9B%AE/project-pku-vcl-2023-final-project/project-D-3.png" alt="explicit"> Lab 4
+中我们实现了隐式弹簧质点的求解，其中每一帧都求解一个线性系统的开销是非常大的。在
+SIGGRAPH 2013 上，作者提供了一种简单并有效的加速弹簧质点解算的<a target="_blank" rel="noopener" href="https://tiantianliu.cn/papers/liu13fast/liu13fast.html">方法</a>：通过
+local-global
+的交替迭代并预分解矩阵，能够大大加速弹簧质点系统的解算。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/%E9%A1%B9%E7%9B%AE/project-pku-vcl-2023-final-project/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -290,18 +303,23 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
+          <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very
+first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for
+more info. If you get any problems when using Hexo, you can find the
+answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or
+you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="create-a-new-post">Create a new post</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
 <p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
+<h3 id="run-server">Run server</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
 <p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
+<h3 id="generate-static-files">Generate static files</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
 <p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
+<h3 id="deploy-to-remote-sites">Deploy to remote sites</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
 <p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 
       
@@ -367,6 +385,12 @@
   
 
 
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
 
 
 
