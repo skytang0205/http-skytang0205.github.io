@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>Hello World</title>
+    <url>/uncategorized/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very
+first post. Check <a href="https://hexo.io/docs/">documentation</a> for
+more info. If you get any problems when using Hexo, you can find the
+answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or
+you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="create-a-new-post">Create a new post</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="run-server">Run server</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="generate-static-files">Generate static files</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="deploy-to-remote-sites">Deploy to remote sites</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>project-PKU-VCL-2023-Final-Project</title>
+    <url>/%E9%A1%B9%E7%9B%AE/project-pku-vcl-2023-final-project/</url>
+    <content><![CDATA[<h1 id="pku-vcl-final-project">PKU-VCL Final Project</h1>
+<h2 id="preface">0.Preface</h2>
+<p>这是 PKU
+可视计算与交互的期末项目，具体实现了一个快速的弹簧系统的仿真，你可以在<a href="https://github.com/skytang2022/PKU-VCL-2023-Final-Project-Fast-Simulation-of-Mass-Spring-Systems">这里</a>找到源代码。</p>
+<h2 id="introdution">1.Introdution</h2>
+<h3 id="fast-simulation-of-mass-spring-systems">Fast Simulation of
+Mass-Spring Systems</h3>
+
+<p><img src="/%E9%A1%B9%E7%9B%AE/project-pku-vcl-2023-final-project/project-D-3.png" alt="explicit"> Lab 4
+中我们实现了隐式弹簧质点的求解，其中每一帧都求解一个线性系统的开销是非常大的。在
+SIGGRAPH 2013 上，作者提供了一种简单并有效的加速弹簧质点解算的<a href="https://tiantianliu.cn/papers/liu13fast/liu13fast.html">方法</a>：通过
+local-global
+的交替迭代并预分解矩阵，能够大大加速弹簧质点系统的解算。</p>
+<span id="more"></span>
+<h2 id="method">2.Method</h2>
+<p>我们假设一个质点-弹簧系统在 3D 中具有 <span class="math inline">\(m\)</span> 个点，在具有恒定的时间步长 <span class="math inline">\(h\)</span> 的时间样本 <span class="math inline">\(t_{1},t_{2},...\)</span>下演化。在 <span class="math inline">\(t_{n}\)</span> 时刻的质点坐标为 <span class="math inline">\(\textbf{q}_{n}\in \mathbb{R}^{3m}\)</span>，速度为
+<span class="math inline">\(\textbf{v}_{n}\in
+\mathbb{R}^{3m}\)</span>。受力用一个非线性方程 <span class="math inline">\(\textbf{f}:\mathbb{R}^{3m}\to\mathbb{R}^{3m}\)</span>表示，因此
+<span class="math inline">\(\textbf{f}(\textbf{q}_{n})\)</span> 是在时间
+<span class="math inline">\(t_{n}\)</span>
+时作用在所有粒子上的力的向量。我们假设力是保守的，即 <span class="math inline">\(\textbf{f}=-\nabla E\)</span>，其中 <span class="math inline">\(E:\mathbb{R}^{3m}\to\mathbb{R}^{m}\)</span>
+是一个势函数。给定对角质量矩阵 <span class="math inline">\(\textbf{M}\in
+\mathbb{R}^{3m\times3m}\)</span>，根据牛顿定律隐式欧拉规则会产生以下更新规则：
+<span class="math display">\[\begin{align}
+\textbf{q}_{n+1}=\textbf{q}_{n}+h\textbf{v}_{n+1}\\
+\textbf{v}_{n+1}=\textbf{v}_{n}+h\textbf{M}^{-1}\textbf{f}(\textbf{q}_{n+1})\end{align}
+\]</span> 将（1）代入（2）后可得： <span class="math display">\[\begin{align}
+\textbf{q}_{n+1}-\textbf{q}_{n}-h\textbf{v}_{n}=h^2\textbf{M}^{-1}\textbf{f}(\textbf{q}_{n+1})
+\end{align}
+\]</span> 将 <span class="math inline">\(\textbf{f}\)</span>
+拆分为与位置相关量和与位置无关量 <span class="math inline">\(\textbf{f}(\textbf{q}_{n})=\textbf{f}_{int}(\textbf{q}_{n})+\textbf{f}_{ext}\)</span>
+设 <span class="math inline">\(\textbf{y}:=\textbf{q}_{n}+h\textbf{v}_{n}+h^2\textbf{M}^{-1}\textbf{f}_{ext}\)</span>
+，<span class="math inline">\(\textbf{x}:=\textbf{q}_{n+1}\)</span>
+。其中<span class="math inline">\(\textbf{y}\)</span> 为已知量，<span class="math inline">\(\textbf{x}\)</span> 为要求的量，方程可写作： <span class="math display">\[\begin{align}
+\textbf{M}(\textbf{x}-\textbf{y})=h^2\textbf{f}(\textbf{x}) \end{align}
+\]</span>方程（4）的解对应以下函数的临界点： <span class="math display">\[\begin{align}
+g(\textbf{x})=\frac{1}{2}(\textbf{x}-\textbf{y})^T\textbf{M}(\textbf{x}-\textbf{y})+h^2E(\textbf{x})
+\end{align}
+\]</span> 因而原问题转化为最小化问题： <span class="math inline">\(\min_{\textbf{x}}g(\textbf{x})\)</span></p>
+<p>文章中技术的主要思想是以一种允许我们采用块坐标下降法（block
+coordinate descent method）重新表述能量势 <span class="math inline">\(E\)</span>。而 <span class="math inline">\(E\)</span> 的关键组成部分是弹簧势。
+根据胡克定律，弹簧势定义为： <span class="math display">\[\begin{align}
+\frac{1}{2}k(\left\|  \textbf{p}_1-\textbf{p}_2 \right\|-r)^2
+\end{align}
+\]</span>其中 <span class="math inline">\(\textbf{p}_1,\textbf{p}_2\in\mathbb{R}^3\)</span>
+为弹簧端点位置，<span class="math inline">\(r\ge0\)</span> 为原长，<span class="math inline">\(k\ge0\)</span>
+为劲度系数。重新表述的关键在于将胡克定律重新表述为最小化问题（证明省略）：
+<span class="math display">\[\begin{align}
+(\left\|  \textbf{p}_1-\textbf{p}_2 \right\|-r)^2=\underset{\left\|
+\textbf{d}
+\right\|=r}{\min}\left\|  \textbf{p}_1-\textbf{p}_2-\textbf{d}
+\right\|^2 \end{align}
+\]</span>所以弹簧势可以表述为： <span class="math display">\[\begin{align}
+E(\textbf{x})=\frac{1}{2}\sum_{i=1}^{s}k_i \underset{\left\|
+\textbf{d}_i  \right\|=r}{\min}\left\|  \textbf{p}_{i_1}-\textbf{p}_{i_2}-\textbf{d}_i
+\right\|^2 =\underset{\left\|
+\textbf{d}_i  \right\|=r}{\min}\frac{1}{2}\textbf{x}^T\textbf{L}\textbf{x}-\textbf{x}^T\textbf{J}\textbf{d}
+\end{align}
+\]</span>其中 <span class="math inline">\(s\)</span> 为弹簧数量，矩阵
+<span class="math inline">\(\textbf{L}\in
+\mathbb{R}^{3m\times3m},\textbf{J}\in \mathbb{R}^{3m\times3s}\)</span>
+定义如下： <span class="math display">\[\begin{align}\textbf{L}=\left(\sum_{i=1}^{s}k_i\textbf{A}_i\textbf{A}_i^T\right)\otimes
+\textbf{I}_3,
+\textbf{J}=\left(\sum_{i=1}^{s}k_i\textbf{A}_i\textbf{S}_i^T\right)\otimes
+\textbf{I}_3 \end{align}
+\]</span>其中 <span class="math inline">\(\textbf{A}_i \in
+\textbf{R}^m\)</span>
+是第i个弹簧的入射向量，$<em>{i,i_1}=1,</em>{i,i_2}=-1 <span class="math inline">\(，其他为0。\)</span>_i ^s$ 为第i个弹簧的指示向量，
+<span class="math inline">\(\textbf{s}_{i,i}=1\)</span>，其他为0。将他们带入我们需要求解的最小化问题中可以得到：
+<span class="math display">\[\begin{align} \underset{
+\textbf{x}\in\textbf{R}^{3m},
+\left\|\textbf{d}_i  \right\|=r}{\min}\frac{1}{2}\textbf{x}^T\textbf{L}\textbf{x}-\textbf{x}^T\textbf{J}\textbf{d}+\textbf{x}^T\textbf{y}
+\end{align}
+\]</span>最小化问题（10）可以用块下降方法求解。先固定 <span class="math inline">\(\textbf{x}\)</span> ，求得最优的 <span class="math inline">\(\textbf{d}\)</span> ，再固定 <span class="math inline">\(\textbf{d}\)</span> ，求得最优的 <span class="math inline">\(\textbf{x}\)</span>
+，如此反复直到到达最大迭代次数。值得注意的是，在每一步迭代 <span class="math inline">\(\textbf{x}\)</span> 时可以使用牛顿法下降，而迭代
+<span class="math inline">\(\textbf{d}\)</span> 时因为（7），可以直接将
+<span class="math inline">\(\textbf{d}_i=r(\textbf{p}_{i_1}-\textbf{p}_{i_2})/\left\|
+\textbf{p}_{i_1}-\textbf{p}_{i_2} \right\|\)</span>代入，加速计算。</p>
+<h2 id="implementation">3.Implementation</h2>
+<p>这部分没什么意思我们跳过。</p>
+<h2 id="result">4.Result</h2>
+<p>重新调整了界面使得三种算法，显式欧拉，隐式欧拉和快速隐式欧拉，可以方便比较。并且加入了新的变量steps，代表每一小步的迭代次数。用fps大小来评定算法的效率。</p>
+<p>显式欧拉法效率最高，在steps=1000时，fps依旧保持在最大的60。
+ <img src="/%E9%A1%B9%E7%9B%AE/project-pku-vcl-2023-final-project/explicit.png" alt="explicit">
+隐式欧拉法效率很低，在steps=39时，fps就只有20了，当steps达到150时实时仿真就崩溃了。
+ <img src="/%E9%A1%B9%E7%9B%AE/project-pku-vcl-2023-final-project/implicit_1.png" alt="implicit">  <img src="/%E9%A1%B9%E7%9B%AE/project-pku-vcl-2023-final-project/implicit_2.png" alt="implicit">
+我们实现的快速隐式欧拉法相较于传统的隐式欧拉法，效率会快上数倍，steps在150时，fps有39，当steps达到500时，fps还能保持在15，steps达到最大的1000时仿真依旧没有崩溃。
+ <img src="/%E9%A1%B9%E7%9B%AE/project-pku-vcl-2023-final-project/fast_implicit_1.png" alt="fast_implicit">  <img src="/%E9%A1%B9%E7%9B%AE/project-pku-vcl-2023-final-project/fast_implicit_2.png" alt="fast_implicit">  <img src="/%E9%A1%B9%E7%9B%AE/project-pku-vcl-2023-final-project/fast_implicit_3.png" alt="fast_implicit"></p>
+]]></content>
+      <categories>
+        <category>项目</category>
+      </categories>
+      <tags>
+        <tag>项目</tag>
+        <tag>C++</tag>
+        <tag>物理仿真</tag>
+      </tags>
+  </entry>
+</search>
