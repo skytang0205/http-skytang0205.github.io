@@ -4,7 +4,6 @@
     <title>project-PKU-VCL-2023-Final-Project</title>
     <url>/%E9%A1%B9%E7%9B%AE/project-pku-vcl-2023-final-project/</url>
     <content><![CDATA[<h1 id="pku-vcl-final-project">PKU-VCL Final Project</h1>
-<h2 id="preface">0.Preface</h2>
 <p>这是 PKU
 可视计算与交互的期末项目，具体实现了一个快速的弹簧系统的仿真，你可以在<a href="https://github.com/skytang2022/PKU-VCL-2023-Final-Project-Fast-Simulation-of-Mass-Spring-Systems">这里</a>找到源代码。</p>
 <h2 id="introdution">1.Introdution</h2>
